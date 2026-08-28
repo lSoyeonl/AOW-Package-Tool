@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AOW Package Tool</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23101714'/%3E%3Cpath d='M12 24 32 14l20 10-20 11z' fill='%23eed28e' stroke='%23d9b86c' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='m12 24 20 11v20L12 44z' fill='%23b99548' stroke='%23d9b86c' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='m52 24-20 11v20l20-11z' fill='%23d9b86c' stroke='%23d9b86c' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='m27 17 10 1v34l-5 3-5-3z' fill='%232d6b50' opacity='.95'/%3E%3Cpath d='M12 24 32 35l20-11' fill='none' stroke='%23f8e6b7' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <style>
+    :root{color-scheme:dark;--bg:#101714;--panel:#17231e;--line:#2d4439;--gold:#d9b86c;--text:#eef4f0;--muted:#9fb0a7;--ok:#72d69b;--bad:#ff8a8a}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;background:radial-gradient(circle at 20% 0,#243c31 0,transparent 36%),var(--bg);color:var(--text)}
+    main{width:min(860px,calc(100% - 32px));margin:48px auto}.brand{display:flex;gap:16px;align-items:center;margin-bottom:26px}.mark{display:grid;place-items:center;width:54px;height:54px;border:1px solid var(--gold);border-radius:16px;color:var(--gold);font:700 26px Georgia,serif}.brand h1{font:600 clamp(24px,4vw,36px) Georgia,serif;margin:0}.brand p{margin:3px 0 0;color:var(--muted)}
+    .notice,.card{border:1px solid var(--line);background:color-mix(in srgb,var(--panel) 94%,transparent);border-radius:18px;padding:22px}.notice{margin-bottom:18px;color:#d7e5dc}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.card h2{margin:0 0 6px;font-size:20px}.card p{min-height:72px;margin:0 0 18px;color:var(--muted)}button{width:100%;border:1px solid #8b7545;border-radius:12px;padding:12px 16px;background:linear-gradient(#d9b86c,#b99548);color:#16130d;font-weight:750;font-size:15px;cursor:pointer}button:hover{filter:brightness(1.08)}button:disabled{cursor:not-allowed;filter:grayscale(1);opacity:.55}
+    .log{margin-top:18px;min-height:150px;max-height:300px;overflow:auto;white-space:pre-wrap;border:1px solid var(--line);border-radius:14px;background:#0b110e;padding:16px;color:#bdd0c5;font:13px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace}.foot{margin-top:14px;color:var(--muted);font-size:13px}.ok{color:var(--ok)}.bad{color:var(--bad)}
+    @media(max-width:650px){main{margin:24px auto}.grid{grid-template-columns:1fr}.card p{min-height:0}}
+  </style>
+</head>
+<body>
+<main>
+  <div class="brand"><div class="mark">武</div><div><h1>AOW Package Tool</h1><p>Для Age of Wushu / Легенды Кунг-Фу</p></div></div>
+  <div class="notice"><strong>Перед заменой файла в игре сделайте копию.</strong> Инструмент работает локально: файлы никуда не отправляются.</div>
+  <div class="grid">
+    <section class="card">
+      <h2>Распаковать</h2>
+      <p>Выберите <b>text.package</b>, затем папку назначения. Будет создана папка <b>text.package.files</b>.</p>
+      <button id="extract">Выбрать .package и распаковать</button>
+    </section>
+    <section class="card">
+      <h2>Запаковать</h2>
+      <p>Выберите папку <b>text.package.files</b> после редактирования. Новый файл сохранится под выбранным именем.</p>
+      <button id="pack">Выбрать папку и запаковать</button>
+    </section>
+  </div>
+  <div id="log" class="log">Готово к работе.</div>
+  <div class="foot">Нужен Google Chrome или Microsoft Edge. Поддерживаются архивы формата PCK0 (.package).</div>
+</main>
+<script>
+const $=s=>document.querySelector(s), logBox=$('#log');
+function log(message,type=''){const line=document.createElement('div');line.textContent=message;if(type)line.className=type;logBox.append(line);logBox.scrollTop=logBox.scrollHeight}
+function resetLog(message){logBox.textContent='';log(message)}
+function u16(v,o){return v.getUint16(o,true)} function u32(v,o){return v.getUint32(o,true)}
+function put16(v,o,n){v.setUint16(o,n,true)} function put32(v,o,n){v.setUint32(o,n,true)}
+function b64(bytes){let s='';for(let i=0;i<bytes.length;i+=0x8000)s+=String.fromCharCode(...bytes.subarray(i,i+0x8000));return btoa(s)}
+function fromB64(s){const x=atob(s),b=new Uint8Array(x.length);for(let i=0;i<x.length;i++)b[i]=x.charCodeAt(i);return b}
+function decodeName(bytes){for(const enc of ['gbk','windows-1251','windows-1254','utf-8']){try{const s=new TextDecoder(enc,{fatal:true}).decode(bytes);if(!s.includes('\ufffd'))return s}catch{}}return new TextDecoder('windows-1251').decode(bytes)}
+function safeParts(path){const p=path.replaceAll('\\','/').split('/').filter(Boolean);if(!p.length||p.some(x=>x==='.'||x==='..'||x.includes(':')||x.includes('\0')))throw new Error('Небезопасный путь в архиве: '+path);return p}
+async function inflate(bytes){const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate'));return new Uint8Array(await new Response(stream).arrayBuffer())}
+async function deflate(bytes){const stream=new Blob([bytes]).stream().pipeThrough(new CompressionStream('deflate'));return new Uint8Array(await new Response(stream).arrayBuffer())}
+async function writePath(root,parts,data){let dir=root;for(const part of parts.slice(0,-1))dir=await dir.getDirectoryHandle(part,{create:true});const fh=await dir.getFileHandle(parts.at(-1),{create:true}),w=await fh.createWritable();await w.write(data);await w.close()}
+async function readFileHandle(fh){return new Uint8Array(await (await fh.getFile()).arrayBuffer())}
+async function parsePackage(bytes){
+  if(bytes.length<19||new TextDecoder('ascii').decode(bytes.subarray(0,4))!=='PCK0')throw new Error('Это не архив PCK0 (.package).');
+  const v=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength),count=u32(v,10),header=u32(v,14);let pos=19,items=[];
+  if(count>200000||header>bytes.length)throw new Error('Повреждён заголовок архива.');
+  for(let i=0;i<count;i++){
+    if(pos+28>header)throw new Error('Повреждена таблица файлов.');
+    const rec=u16(v,pos),offset=u32(v,pos+2),size=u32(v,pos+10),packed=u32(v,pos+14),timestamp=bytes.slice(pos+18,pos+27),nameLen=rec-28;
+    if(nameLen<0||pos+28+nameLen>header||offset+packed>bytes.length)throw new Error('Некорректная запись №'+(i+1));
+    const rawName=bytes.slice(pos+27,pos+27+nameLen),zero=rawName.indexOf(0),actual=zero<0?rawName:rawName.slice(0,zero),name=decodeName(actual);
+    items.push({name,nameBytes:b64(actual),timestamp:b64(timestamp),offset,size,packed});pos+=rec;
+  }
+  return items;
+}
+async function collectFiles(dir,prefix=''){
+  const out=[];for await(const [name,h] of dir.entries()){
+    if(h.kind==='directory')out.push(...await collectFiles(h,prefix+name+'/'));
+    else if(name!=='aow_manifest.json'&&name!=='items.lys')out.push({path:prefix+name,handle:h});
+  }return out;
+}
+function asciiBytes(s){if([...s].some(c=>c.codePointAt(0)>127))throw new Error('Новый путь содержит не-ASCII символы и отсутствует в манифесте: '+s);return new TextEncoder().encode(s)}
+async function doExtract(){
+  const [fh]=await showOpenFilePicker({types:[{description:'AOW Package',accept:{'application/octet-stream':['.package','.patch']}}],multiple:false});
+  const root=await showDirectoryPicker({mode:'readwrite'}),file=await fh.getFile(),bytes=new Uint8Array(await file.arrayBuffer());resetLog('Чтение '+file.name+'…');
+  const items=await parsePackage(bytes),out=await root.getDirectoryHandle(file.name+'.files',{create:true}),manifest={format:'AOW-PCK0-manifest-v1',source:file.name,items:[]};
+  let done=0;for(const item of items){const data=await inflate(bytes.slice(item.offset,item.offset+item.packed));if(data.length!==item.size)throw new Error('Размер не совпал: '+item.name);await writePath(out,safeParts(item.name),data);manifest.items.push({path:item.name,nameBytes:item.nameBytes,timestamp:item.timestamp});if(++done%100===0)log(`Распаковано: ${done} / ${items.length}`)}
+  const text=new TextEncoder().encode(JSON.stringify(manifest,null,2)),lys=new TextEncoder().encode(manifest.items.map(x=>`${x.path} = ${[...fromB64(x.timestamp)].map(n=>n.toString(16).padStart(2,'0').toUpperCase()).join(' ')}`).join('\r\n'));
+  await writePath(out,['aow_manifest.json'],text);await writePath(out,['items.lys'],lys);log(`Готово: распаковано ${items.length} файлов. Изменяйте их в созданной папке.`, 'ok');
+}
+async function doPack(){
+  const dir=await showDirectoryPicker({mode:'read'});resetLog('Чтение папки '+dir.name+'…');let manifest=null;
+  try{manifest=JSON.parse(new TextDecoder().decode(await readFileHandle(await dir.getFileHandle('aow_manifest.json'))))}catch{log('Манифест не найден: новые имена должны содержать только латиницу.','bad')}
+  const meta=new Map((manifest?.items||[]).map(x=>[x.path.replaceAll('\\','/'),x])),files=await collectFiles(dir);if(!files.length)throw new Error('В папке нет файлов для упаковки.');
+  const entries=[];let total=0;for(const f of files){const raw=await readFileHandle(f.handle),packed=await deflate(raw),m=meta.get(f.path),nameBytes=m?fromB64(m.nameBytes):asciiBytes(f.path),timestamp=m?fromB64(m.timestamp):new Uint8Array([0xDC,0x07,0x07,0x1F,0x06,0x38,0x23,0,0]);entries.push({path:f.path,nameBytes,timestamp,size:raw.length,packed});total+=packed.length;if(entries.length%100===0)log(`Сжато: ${entries.length} / ${files.length}`)}
+  const header=19+entries.reduce((n,e)=>n+28+e.nameBytes.length,0),all=new Uint8Array(header+total),v=new DataView(all.buffer);all.set([0x50,0x43,0x4B,0x30,0x0F,0,0,0,0,0],0);put32(v,10,entries.length);put32(v,14,header);let pos=19,offset=header;
+  for(const e of entries){put16(v,pos,e.nameBytes.length+28);put32(v,pos+2,offset);put32(v,pos+6,0);put32(v,pos+10,e.size);put32(v,pos+14,e.packed.length);all.set(e.timestamp,pos+18);all.set(e.nameBytes,pos+27);all[pos+27+e.nameBytes.length]=0;pos+=28+e.nameBytes.length;offset+=e.packed.length}
+  offset=header;for(const e of entries){all.set(e.packed,offset);offset+=e.packed.length}
+  const suggested=(manifest?.source||dir.name.replace(/\.files$/i,''))||'text.package',save=await showSaveFilePicker({suggestedName:suggested,types:[{description:'AOW Package',accept:{'application/octet-stream':['.package']}}]}),w=await save.createWritable();await w.write(all);await w.close();log(`Готово: упаковано ${entries.length} файлов.`, 'ok');
+}
+async function run(button,fn){button.disabled=true;try{await fn()}catch(e){if(e?.name!=='AbortError'){log('Ошибка: '+(e?.message||e),'bad');console.error(e)}}finally{button.disabled=false}}
+if(!('showOpenFilePicker'in window&&'showDirectoryPicker'in window&&'CompressionStream'in window)){document.querySelectorAll('button').forEach(b=>b.disabled=true);resetLog('Откройте файл в актуальной версии Google Chrome или Microsoft Edge.','bad')}
+$('#extract').onclick=()=>run($('#extract'),doExtract);$('#pack').onclick=()=>run($('#pack'),doPack);
+</script>
+</body>
+</html>
