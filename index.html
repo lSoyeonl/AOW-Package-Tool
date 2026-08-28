@@ -6,32 +6,46 @@
   <title>AOW Package Tool</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23101714'/%3E%3Cpath d='M12 24 32 14l20 10-20 11z' fill='%23eed28e' stroke='%23d9b86c' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='m12 24 20 11v20L12 44z' fill='%23b99548' stroke='%23d9b86c' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='m52 24-20 11v20l20-11z' fill='%23d9b86c' stroke='%23d9b86c' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='m27 17 10 1v34l-5 3-5-3z' fill='%232d6b50' opacity='.95'/%3E%3Cpath d='M12 24 32 35l20-11' fill='none' stroke='%23f8e6b7' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E">
   <style>
-    :root{color-scheme:dark;--bg:#101714;--panel:#17231e;--line:#2d4439;--gold:#d9b86c;--text:#eef4f0;--muted:#9fb0a7;--ok:#72d69b;--bad:#ff8a8a}
-    *{box-sizing:border-box}body{margin:0;min-height:100vh;font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;background:radial-gradient(circle at 20% 0,#243c31 0,transparent 36%),var(--bg);color:var(--text)}
-    main{width:min(860px,calc(100% - 32px));margin:48px auto}.brand{display:flex;gap:16px;align-items:center;margin-bottom:26px}.mark{display:grid;place-items:center;width:54px;height:54px;border:1px solid var(--gold);border-radius:16px;color:var(--gold);font:700 26px Georgia,serif}.brand h1{font:600 clamp(24px,4vw,36px) Georgia,serif;margin:0}.brand p{margin:3px 0 0;color:var(--muted)}
-    .notice,.card{border:1px solid var(--line);background:color-mix(in srgb,var(--panel) 94%,transparent);border-radius:18px;padding:22px}.notice{margin-bottom:18px;color:#d7e5dc}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.card h2{margin:0 0 6px;font-size:20px}.card p{min-height:72px;margin:0 0 18px;color:var(--muted)}button{width:100%;border:1px solid #8b7545;border-radius:12px;padding:12px 16px;background:linear-gradient(#d9b86c,#b99548);color:#16130d;font-weight:750;font-size:15px;cursor:pointer}button:hover{filter:brightness(1.08)}button:disabled{cursor:not-allowed;filter:grayscale(1);opacity:.55}
-    .log{margin-top:18px;min-height:150px;max-height:300px;overflow:auto;white-space:pre-wrap;border:1px solid var(--line);border-radius:14px;background:#0b110e;padding:16px;color:#bdd0c5;font:13px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace}.foot{margin-top:14px;color:var(--muted);font-size:13px}.ok{color:var(--ok)}.bad{color:var(--bad)}
-    @media(max-width:650px){main{margin:24px auto}.grid{grid-template-columns:1fr}.card p{min-height:0}}
+    :root{color-scheme:dark;--bg:#08110e;--panel:#111e19;--panel2:#152720;--line:#29483b;--line2:#3c6654;--gold:#e4bd65;--gold2:#b88935;--text:#f3f6f4;--muted:#9eb5aa;--ok:#76d7a0;--bad:#ff9292}
+    *{box-sizing:border-box}html{min-height:100%}body{margin:0;min-height:100vh;font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--text);background:radial-gradient(circle at 15% -10%,#234d3b 0,transparent 35%),radial-gradient(circle at 100% 15%,#182c25 0,transparent 30%),var(--bg);overflow-x:hidden}body:before,body:after{content:"";position:fixed;z-index:-1;border:1px solid #335a4826;border-radius:50%;pointer-events:none}body:before{width:460px;height:460px;right:-240px;top:-180px}body:after{width:340px;height:340px;left:-220px;bottom:-170px}
+    main{width:min(980px,calc(100% - 34px));margin:42px auto 34px}.hero{position:relative;display:flex;align-items:center;gap:22px;margin-bottom:22px;padding:8px 4px}.hero:after{content:"PCK0";position:absolute;right:4px;top:10px;border:1px solid #496b5d;border-radius:999px;padding:5px 11px;color:#91aa9f;font:700 11px/1 system-ui;letter-spacing:.16em}.mark{display:grid;flex:0 0 auto;place-items:center;width:88px;height:88px;border:1px solid #6e592c;border-radius:24px;background:linear-gradient(145deg,#1b3228,#0d1814);box-shadow:0 14px 35px #0007,inset 0 1px #ffffff0d}.mark svg{width:68px;height:68px;filter:drop-shadow(0 8px 12px #0008)}.brand h1{font:600 clamp(28px,4.5vw,44px)/1.05 Georgia,"Times New Roman",serif;letter-spacing:.015em;margin:0;text-shadow:0 2px 18px #000}.brand p{margin:8px 0 0;color:var(--muted);font-size:14px}.brand p span{color:var(--gold)}
+    .notice,.card,.console{border:1px solid var(--line);background:linear-gradient(145deg,#15251fef,#0e1915ed);box-shadow:0 18px 45px #00000025,inset 0 1px #ffffff08}.notice{display:flex;align-items:center;gap:14px;margin-bottom:20px;border-radius:18px;padding:17px 20px;color:#dbe7e1}.notice-icon{display:grid;flex:0 0 auto;place-items:center;width:35px;height:35px;border-radius:11px;background:#213b30;color:var(--gold);font-size:17px}.notice strong{color:#fff}.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}.card{position:relative;overflow:hidden;border-radius:22px;padding:24px;transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease}.card:before{content:"";position:absolute;width:150px;height:150px;right:-80px;top:-80px;border-radius:50%;background:#e4bd650b}.card:hover{transform:translateY(-3px);border-color:var(--line2);box-shadow:0 22px 55px #00000040,inset 0 1px #ffffff0c}.card-head{display:flex;align-items:center;gap:13px;margin-bottom:12px}.card-icon{display:grid;place-items:center;width:42px;height:42px;border:1px solid #4b654e;border-radius:13px;background:#1a3027;color:var(--gold);font-size:21px}.step{margin-left:auto;color:#789184;font-size:12px;font-weight:750;letter-spacing:.12em}.card h2{margin:0;font-size:21px}.card p{min-height:70px;margin:0 0 21px;color:var(--muted)}.card b{color:#dfeae4}button{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;border:1px solid #8b6b2d;border-radius:13px;padding:13px 16px;background:linear-gradient(180deg,#edc971,#c99b45);box-shadow:0 7px 20px #0004,inset 0 1px #fff6;color:#19130a;font-weight:800;font-size:14px;cursor:pointer;transition:transform .18s ease,filter .18s ease,box-shadow .18s ease}button:hover{filter:brightness(1.07);transform:translateY(-1px);box-shadow:0 10px 24px #0006,inset 0 1px #fff7}button:active{transform:translateY(1px)}button:disabled{cursor:not-allowed;filter:grayscale(1);opacity:.55}.button-arrow{font-size:17px}
+    .console{margin-top:20px;overflow:hidden;border-radius:18px}.console-head{display:flex;align-items:center;gap:7px;border-bottom:1px solid #20382e;background:#0b1511;padding:11px 15px;color:#789487;font-size:12px;text-transform:uppercase;letter-spacing:.12em}.dot{width:8px;height:8px;border-radius:50%;background:#355548}.dot:first-child{background:#c99b45}.console-head span:last-child{margin-left:5px}.log{min-height:145px;max-height:300px;overflow:auto;white-space:pre-wrap;background:#07100c;padding:17px 18px;color:#b8cec2;font:13px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace}.log>div:before{content:"› ";color:#d1ad5a}.foot{display:flex;flex-wrap:wrap;gap:9px;margin-top:15px;color:var(--muted);font-size:12px}.chip{border:1px solid #254035;border-radius:999px;background:#0d1914;padding:6px 10px}.ok{color:var(--ok)}.bad{color:var(--bad)}
+    @media(max-width:690px){main{margin:23px auto}.hero{align-items:flex-start}.mark{width:72px;height:72px;border-radius:19px}.mark svg{width:56px;height:56px}.hero:after{display:none}.grid{grid-template-columns:1fr}.card p{min-height:0}.brand h1{font-size:29px}}
+    @media(max-width:440px){.hero{gap:14px}.mark{width:60px;height:60px}.mark svg{width:47px;height:47px}.brand h1{font-size:24px}.brand p{font-size:12px}.notice{align-items:flex-start}.card{padding:20px}}
   </style>
 </head>
 <body>
 <main>
-  <div class="brand"><div class="mark">武</div><div><h1>AOW Package Tool</h1><p>Для Age of Wushu / Легенды Кунг-Фу</p></div></div>
-  <div class="notice"><strong>Перед заменой файла в игре сделайте копию.</strong> Инструмент работает локально: файлы никуда не отправляются.</div>
+  <header class="hero">
+    <div class="mark" aria-hidden="true">
+      <svg viewBox="0 0 96 96" role="img">
+        <defs><linearGradient id="boxTop" x1="0" x2="1"><stop stop-color="#f4d98f"/><stop offset="1" stop-color="#c9983d"/></linearGradient><linearGradient id="boxSide" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#ddb45c"/><stop offset="1" stop-color="#9a6b24"/></linearGradient></defs>
+        <path d="M15 35 48 18l33 17-33 18z" fill="url(#boxTop)" stroke="#f3d784" stroke-width="2.5" stroke-linejoin="round"/>
+        <path d="m15 35 33 18v30L15 66z" fill="#b77f2c" stroke="#e8bd62" stroke-width="2.5" stroke-linejoin="round"/>
+        <path d="m81 35-33 18v30l33-17z" fill="url(#boxSide)" stroke="#e8bd62" stroke-width="2.5" stroke-linejoin="round"/>
+        <path d="m40 22 16 1v56l-8 4-8-4z" fill="#2d7053"/>
+        <path d="M15 35 48 53l33-18" fill="none" stroke="#ffe7a8" stroke-width="2.5" stroke-linejoin="round"/>
+        <path d="M65 12v10M60 17h10" stroke="#f4d98f" stroke-width="3" stroke-linecap="round"/><circle cx="76" cy="18" r="2.5" fill="#f4d98f"/>
+      </svg>
+    </div>
+    <div class="brand"><h1>AOW Package Tool</h1><p>Архиватор для <span>Age of Wushu</span> / Легенды Кунг-Фу</p></div>
+  </header>
+  <div class="notice"><div class="notice-icon">◆</div><div><strong>Сначала создайте резервную копию.</strong> Обработка выполняется только на вашем компьютере — файлы никуда не отправляются.</div></div>
   <div class="grid">
     <section class="card">
-      <h2>Распаковать</h2>
+      <div class="card-head"><div class="card-icon">↧</div><h2>Распаковать</h2><div class="step">ШАГ 01</div></div>
       <p>Выберите <b>text.package</b>, затем папку назначения. Будет создана папка <b>text.package.files</b>.</p>
-      <button id="extract">Выбрать .package и распаковать</button>
+      <button id="extract"><span>Выбрать .package и распаковать</span><span class="button-arrow">→</span></button>
     </section>
     <section class="card">
-      <h2>Запаковать</h2>
+      <div class="card-head"><div class="card-icon">↥</div><h2>Запаковать</h2><div class="step">ШАГ 02</div></div>
       <p>Выберите папку <b>text.package.files</b> после редактирования. Новый файл сохранится под выбранным именем.</p>
-      <button id="pack">Выбрать папку и запаковать</button>
+      <button id="pack"><span>Выбрать папку и запаковать</span><span class="button-arrow">→</span></button>
     </section>
   </div>
-  <div id="log" class="log">Готово к работе.</div>
-  <div class="foot">Нужен Google Chrome или Microsoft Edge. Поддерживаются архивы формата PCK0 (.package).</div>
+  <section class="console"><div class="console-head"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Журнал операций</span></div><div id="log" class="log">Готово к работе.</div></section>
+  <div class="foot"><span class="chip">Chrome / Edge</span><span class="chip">Формат PCK0</span><span class="chip">Работает локально</span><span class="chip">.package / .patch</span></div>
 </main>
 <script>
 const $=s=>document.querySelector(s), logBox=$('#log');
