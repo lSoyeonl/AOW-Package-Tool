@@ -40,12 +40,12 @@
     </section>
     <section class="card">
       <div class="card-head"><div class="card-icon">↥</div><h2>Запаковать</h2><div class="step">ШАГ 02</div></div>
-      <p>Выберите папку <b>text.package.files</b> после редактирования. Новый файл сохранится под выбранным именем.</p>
+      <p>Выберите папку <b>text.package.files</b> после редактирования. Подойдёт и старая распакованная папка без BAK/LYS.</p>
       <button id="pack"><span>Выбрать папку и запаковать</span><span class="button-arrow">→</span></button>
     </section>
   </div>
   <section class="console"><div class="console-head"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>Журнал операций</span></div><div id="log" class="log">Готово к работе.</div></section>
-  <div class="foot"><span class="chip">Chrome / Edge</span><span class="chip">Формат PCK0</span><span class="chip">Работает локально</span><span class="chip">Только .package</span></div>
+  <div class="foot"><span class="chip">Chrome / Edge</span><span class="chip">Формат PCK0</span><span class="chip">Работает локально</span><span class="chip">Восстановление из папки</span></div>
 </main>
 <script>
 const $=s=>document.querySelector(s), logBox=$('#log');
@@ -64,7 +64,7 @@ async function readFileHandle(fh){return new Uint8Array(await (await fh.getFile(
 async function parsePackage(bytes){
   if(bytes.length<19||new TextDecoder('ascii').decode(bytes.subarray(0,4))!=='PCK0')throw new Error('Это не архив PCK0 (.package).');
   const v=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength),version=u16(v,4),protection=u32(v,6),count=u32(v,10),header=u32(v,14);let pos=19,items=[];
-  if(version===15&&protection===0x01200004)throw new Error('Этот PCK0 v15 содержит зашифрованную таблицу файлов. Для этой версии нужен ключ из клиента игры; обычный PCK0-архиватор её не распакует.');
+  if(version===15&&protection===0x01200004)throw new Error('Этот исходный PCK0 содержит защищённую таблицу. Если у вас сохранилась прежняя папка text.package.files, выберите «Запаковать»: приложение создаст новый повторно открываемый text.package.');
   if(count>200000||header>bytes.length)throw new Error('Повреждён заголовок архива.');
   for(let i=0;i<count;i++){
     if(pos+28>header)throw new Error('Повреждена таблица файлов.');
@@ -92,13 +92,13 @@ async function doExtract(){
 }
 async function doPack(){
   const dir=await showDirectoryPicker({mode:'read'});resetLog('Чтение папки '+dir.name+'…');let manifest=null;
-  try{manifest=JSON.parse(new TextDecoder().decode(await readFileHandle(await dir.getFileHandle('aow_manifest.json'))))}catch{log('Манифест не найден: новые имена должны содержать только латиницу.','bad')}
+  try{manifest=JSON.parse(new TextDecoder().decode(await readFileHandle(await dir.getFileHandle('aow_manifest.json'))))}catch{log('Режим восстановления: собираю архив из содержимого папки без BAK/LYS. Имена файлов должны содержать латиницу.','ok')}
   const meta=new Map((manifest?.items||[]).map(x=>[x.path.replaceAll('\\','/'),x])),files=await collectFiles(dir);if(!files.length)throw new Error('В папке нет файлов для упаковки.');
   const entries=[];let total=0;for(const f of files){const raw=await readFileHandle(f.handle),packed=await deflate(raw),m=meta.get(f.path),nameBytes=m?fromB64(m.nameBytes):asciiBytes(f.path),timestamp=m?fromB64(m.timestamp):new Uint8Array([0xDC,0x07,0x07,0x1F,0x06,0x38,0x23,0,0]);entries.push({path:f.path,nameBytes,timestamp,size:raw.length,packed});total+=packed.length;if(entries.length%100===0)log(`Сжато: ${entries.length} / ${files.length}`)}
   const header=19+entries.reduce((n,e)=>n+28+e.nameBytes.length,0),all=new Uint8Array(header+total),v=new DataView(all.buffer);all.set([0x50,0x43,0x4B,0x30,0x0F,0,0,0,0,0],0);put32(v,10,entries.length);put32(v,14,header);let pos=19,offset=header;
   for(const e of entries){put16(v,pos,e.nameBytes.length+28);put32(v,pos+2,offset);put32(v,pos+6,0);put32(v,pos+10,e.size);put32(v,pos+14,e.packed.length);all.set(e.timestamp,pos+18);all.set(e.nameBytes,pos+27);all[pos+27+e.nameBytes.length]=0;pos+=28+e.nameBytes.length;offset+=e.packed.length}
   offset=header;for(const e of entries){all.set(e.packed,offset);offset+=e.packed.length}
-  const suggested=(manifest?.source||dir.name.replace(/\.files$/i,''))||'text.package',save=await showSaveFilePicker({suggestedName:suggested,types:[{description:'AOW Package',accept:{'application/octet-stream':['.package']}}]}),w=await save.createWritable();await w.write(all);await w.close();log(`Готово: упаковано ${entries.length} файлов.`, 'ok');
+  const suggested=(manifest?.source||dir.name.replace(/\.files$/i,''))||'text.package',save=await showSaveFilePicker({suggestedName:suggested,types:[{description:'AOW Package',accept:{'application/octet-stream':['.package']}}]}),w=await save.createWritable();await w.write(all);await w.close();log(`Готово: упаковано ${entries.length} файлов. Новый архив можно снова распаковывать и запаковывать этим приложением.`, 'ok');
 }
 async function run(button,fn){button.disabled=true;try{await fn()}catch(e){if(e?.name!=='AbortError'){log('Ошибка: '+(e?.message||e),'bad');console.error(e)}}finally{button.disabled=false}}
 if(!('showOpenFilePicker'in window&&'showDirectoryPicker'in window&&'CompressionStream'in window)){document.querySelectorAll('button').forEach(b=>b.disabled=true);resetLog('Откройте файл в актуальной версии Google Chrome или Microsoft Edge.','bad')}
